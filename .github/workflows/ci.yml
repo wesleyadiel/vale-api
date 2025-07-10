@@ -7,10 +7,9 @@ permissions:
 
 on:
   push:
-    branches-ignore:
-      - main
     branches:
-      - '**'
+      - '*'
+      - '!main'
   pull_request:
     branches:
       - develop
@@ -66,7 +65,7 @@ jobs:
     name: 🔁 Create PR to Main
     runs-on: ubuntu-latest
     needs: codeql-analysis
-    if: github.ref == 'refs/heads/dev'  # Apenas quando for a branch dev
+    if: github.ref == 'refs/heads/develop'
 
     steps:
       - name: ⏬ Checkout code
