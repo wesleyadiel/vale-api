@@ -77,6 +77,30 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           branch: dev
           base: main
-          title: "🔁 PR automático da develop para main"
+          title: "PR automático | develop -> main"
           body: |
             Este PR foi gerado automaticamente após a análise bem-sucedida da branch `develop`.
+
+  create-pr-to-develop:
+    name: 🔁 Create PR to develop
+    runs-on: ubuntu-latest
+    needs: codeql-analysis
+    if: |
+      startsWith(github.ref, 'refs/heads/') &&
+      github.ref != 'refs/heads/develop' &&
+      github.ref != 'refs/heads/main' &&
+      github.ref != 'refs/heads/homolog'
+
+    steps:
+      - name: ⏬ Checkout branch
+        uses: actions/checkout@v3
+
+      - name: 🔁 Create PR to develop
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref_name }}
+          base: develop
+          title: "PR automático | `${{ github.ref_name }}` -> develop"
+          body: |
+            Este PR foi gerado automaticamente após o push na branch `${{ github.ref_name }}`
