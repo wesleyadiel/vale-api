@@ -48,10 +48,16 @@ jobs:
           username: ${{ secrets.LIGHTSAIL_USER }}
           key: ${{ secrets.LIGHTSAIL_KEY }}
           script: |
-            echo "🚨 Tentando matar processo Java rodando o jar ${{ secrets.JAR_NAME }} (se existir)..."
-            pkill -f ${{ secrets.JAR_NAME }} || true
+            echo "🚨 Verificando se existe processo rodando com o JAR ${{ secrets.JAR_NAME }}..."
+            if pgrep -f ${{ secrets.JAR_NAME }} > /dev/null; then
+              echo "🔪 Processo encontrado. Matando com pkill..."
+              pkill -f ${{ secrets.JAR_NAME }}
+              echo "✅ Processo encerrado com sucesso."
+            else
+              echo "ℹ️ Nenhum processo Java rodando com nome ${{ secrets.JAR_NAME }}."
+            fi
 
-            echo "⌛ Aguardando 5 segundos para garantir que processo foi finalizado..."
+            echo "⌛ Aguardando 5 segundos..."
             sleep 5
 
             echo "📂 Acessando diretório da aplicação: ${{ secrets.REMOTE_APP_PATH }}/target"
@@ -67,5 +73,3 @@ jobs:
             nohup java -jar ${{ secrets.JAR_NAME }} > nohup.out 2>&1 &
 
             echo "✅ Aplicação iniciada com sucesso!"
-      
-      
