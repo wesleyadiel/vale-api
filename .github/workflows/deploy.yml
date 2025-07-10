@@ -50,9 +50,9 @@ jobs:
           script: |
             echo "🚨 Verificando se existe processo rodando com o JAR ${{ secrets.JAR_NAME }}..."
             if pgrep -f ${{ secrets.JAR_NAME }} > /dev/null; then
-              echo "🔪 Processo encontrado. Matando com pkill..."
-              pkill -f ${{ secrets.JAR_NAME }}
-              echo "✅ Processo encerrado com sucesso."
+              echo "🔪 Processo encontrado. Matando com pkill (em subshell protegido)..."
+              ( pkill -f ${{ secrets.JAR_NAME }} ) || echo "⚠️ pkill retornou código diferente de zero, mas continuamos."
+              echo "✅ Processo encerrado com sucesso (ou já não existia mais)."
             else
               echo "ℹ️ Nenhum processo Java rodando com nome ${{ secrets.JAR_NAME }}."
             fi
