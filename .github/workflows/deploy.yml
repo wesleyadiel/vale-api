@@ -55,7 +55,7 @@ jobs:
             sleep 5
 
             echo "📂 Acessando diretório da aplicação: ${{ secrets.REMOTE_APP_PATH }}"
-            cd ${{ secrets.REMOTE_APP_PATH }}
+            cd ${{ secrets.REMOTE_APP_PATH }}/target
 
             echo "📍 Diretório atual:"
             pwd
