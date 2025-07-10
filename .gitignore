@@ -31,3 +31,72 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# =====================
+# Java / Maven
+# =====================
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# Arquivos de log
+*.log
+
+# Arquivos temporários
+*.tmp
+*.swp
+*.bak
+
+# Arquivos de build do Maven
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# =====================
+# IntelliJ IDEA
+# =====================
+.idea/
+*.iml
+*.iws
+out/
+
+# =====================
+# VS Code (caso use)
+# =====================
+.vscode/
+
+# =====================
+# MacOS
+# =====================
+.DS_Store
+
+# =====================
+# Testes
+# =====================
+test-output/
+surefire-reports/
+jacoco.exec
+
+# =====================
+# Configs locais
+# =====================
+.env
+*.secrets
+*.key
+*.pem
+
+# =====================
+# Ferramentas diversas
+# =====================
+*.log
+*.lock
+npm-debug.log*
+
+# =====================
+# SDKMAN / Java
+# =====================
+.sdkmanrc
