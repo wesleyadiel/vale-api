@@ -47,8 +47,8 @@ jobs:
           echo "⌛ Aguardando..."
           sleep 3
 
-          echo "📂 Acessando pasta ${{ secrets.REMOTE_APP_PATH }}/target"
-          cd ${{ secrets.REMOTE_APP_PATH }}/target
+          echo "📂 Acessando pasta ${{ secrets.REMOTE_APP_PATH }}"
+          cd ${{ secrets.REMOTE_APP_PATH }}
 
           echo "📍 Diretório atual: $(pwd)"
           echo "📄 Conteúdo:"
