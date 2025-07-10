@@ -7,13 +7,11 @@ permissions:
 
 on:
   push:
-    branches:
-      - '*'
-      - '!main'
+    branches-ignore:
+      - main
   pull_request:
-    branches:
-      - '*'
-      - '!main'
+    branches-ignore:
+      - main
 
 jobs:
   build-and-test:
@@ -76,7 +74,7 @@ jobs:
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          branch: dev
+          head: develop  # Corrigido aqui
           base: main
           title: "PR automático | develop -> main"
           body: |
@@ -100,8 +98,8 @@ jobs:
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref_name }}
+          head: ${{ github.ref_name }}  # Corrigido aqui
           base: develop
           title: "PR automático | `${{ github.ref_name }}` -> develop"
           body: |
-            Este PR foi gerado automaticamente após o push na branch `${{ github.ref_name }}`
+            Este PR foi gerado automaticamente após o push na branch `${{ github.ref_name }}`.
