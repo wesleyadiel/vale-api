@@ -49,12 +49,12 @@ jobs:
           key: ${{ secrets.LIGHTSAIL_KEY }}
           script: |
             echo "🚨 Tentando matar processo Java rodando o jar ${{ secrets.JAR_NAME }} (se existir)..."
-            pkill -f ${{ secrets.JAR_NAME }} || echo "Nenhum processo para matar."
+            pkill -f ${{ secrets.JAR_NAME }} || true
 
             echo "⌛ Aguardando 5 segundos para garantir que processo foi finalizado..."
             sleep 5
 
-            echo "📂 Acessando diretório da aplicação: ${{ secrets.REMOTE_APP_PATH }}"
+            echo "📂 Acessando diretório da aplicação: ${{ secrets.REMOTE_APP_PATH }}/target"
             cd ${{ secrets.REMOTE_APP_PATH }}/target
 
             echo "📍 Diretório atual:"
