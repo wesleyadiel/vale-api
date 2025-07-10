@@ -1,4 +1,4 @@
-name: 🚀 Deploy para Amazon Lightsail
+name: Deploy Prod
 
 on:
   push:
@@ -50,19 +50,21 @@ jobs:
           script: |
             cd ${{ secrets.REMOTE_APP_PATH }}
             echo "⛔ Parando app atual (se estiver rodando)..."
-            pkill -f "target/${{ secrets.JAR_NAME }}" || true
+            pkill -f "${{ secrets.JAR_NAME }}" || true
+
+            echo "🔧 Garantindo permissões no JAR..."
+            chmod +x ${{ secrets.JAR_NAME }}
 
             echo "🚀 Iniciando nova versão..."
-            nohup java -jar target/${{ secrets.JAR_NAME }} > output.log 2>&1 &
+            nohup java -jar ${{ secrets.JAR_NAME }} > output.log 2>&1 &
 
             sleep 5
 
-            if pgrep -f "target/${{ secrets.JAR_NAME }}" > /dev/null; then
+            if pgrep -f "${{ secrets.JAR_NAME }}" > /dev/null; then
               echo "🟢 App iniciado com sucesso!"
               exit 0
             else
               echo "🔴 Falha ao iniciar o app!"
+              cat output.log
               exit 1
             fi
-          
-      
