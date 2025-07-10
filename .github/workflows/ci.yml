@@ -7,11 +7,13 @@ permissions:
 
 on:
   push:
+    branches-ignore:
+      - main
     branches:
-      - dev
+      - '**'
   pull_request:
     branches:
-      - main
+      - develop
 
 jobs:
   build-and-test:
@@ -38,7 +40,6 @@ jobs:
     name: 🔍 CodeQL Analysis
     runs-on: ubuntu-latest
     needs: build-and-test
-    if: github.ref == 'refs/heads/dev'  # Só roda na branch dev
 
     steps:
       - name: ⏬ Checkout code
@@ -62,10 +63,10 @@ jobs:
         uses: github/codeql-action/analyze@v2
 
   create-pr-to-main:
-    name: 🔁 Create Pull Request to Main
+    name: 🔁 Create PR to Main
     runs-on: ubuntu-latest
     needs: codeql-analysis
-    if: github.ref == 'refs/heads/dev'
+    if: github.ref == 'refs/heads/dev'  # Apenas quando for a branch dev
 
     steps:
       - name: ⏬ Checkout code
@@ -79,4 +80,4 @@ jobs:
           base: main
           title: "🔁 PR automático da develop para main"
           body: |
-            Este PR foi gerado automaticamente após a análise bem-sucedida na branch `develop`.
+            Este PR foi gerado automaticamente após a análise bem-sucedida da branch `develop`.
