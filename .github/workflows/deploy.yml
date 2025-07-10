@@ -38,7 +38,7 @@ jobs:
           host: ${{ secrets.LIGHTSAIL_HOST }}
           username: ${{ secrets.LIGHTSAIL_USER }}
           key: ${{ secrets.LIGHTSAIL_KEY }}
-          source: ${{ secrets.JAR_NAME }}
+          source: target/${{ secrets.JAR_NAME }}
           target: ${{ secrets.REMOTE_APP_PATH }}
 
       - name: 🚀 Reiniciar app na instância
@@ -53,7 +53,7 @@ jobs:
             pkill -f ${{ secrets.JAR_NAME }} || true
 
             echo "🚀 Iniciando nova versão..."
-            nohup java -jar ${{ secrets.JAR_NAME }} > output.log 2>&1 &
+            nohup java -jar target/${{ secrets.JAR_NAME }} > output.log 2>&1 &
 
             sleep 5
 
