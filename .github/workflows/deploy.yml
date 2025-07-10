@@ -23,53 +23,55 @@ jobs:
       - name: 🛠️ Build com Maven
         run: mvn clean package -DskipTests
 
-      - name: 🗂️ Garantir que a pasta remota existe
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.LIGHTSAIL_HOST }}
-          username: ${{ secrets.LIGHTSAIL_USER }}
-          key: ${{ secrets.LIGHTSAIL_KEY }}
-          script: |
-            mkdir -p ${{ secrets.REMOTE_APP_PATH }}
+      - name: 🛠️ Criar script de start remoto
+        run: |
+          cat << 'EOF' > remote-restart.sh
+          #!/bin/bash
 
-      - name: 📤 Copiar JAR via SCP
+          echo "🚨 Verificando processo com o JAR ${{ secrets.JAR_NAME }}"
+          PID=$(pgrep -f ${{ secrets.JAR_NAME }})
+          if [ -n "$PID" ]; then
+            echo "🔪 Matando processo $PID..."
+            kill -9 $PID
+            echo "✅ Processo finalizado."
+          else
+            echo "ℹ️ Nenhum processo rodando."
+          fi
+
+          echo "⌛ Aguardando..."
+          sleep 3
+
+          echo "📂 Acessando pasta ${{ secrets.REMOTE_APP_PATH }}/target"
+          cd ${{ secrets.REMOTE_APP_PATH }}/target
+
+          echo "📍 Diretório atual: $(pwd)"
+          echo "📄 Conteúdo:"
+          ls -l
+
+          echo "🚀 Iniciando app com nohup..."
+          nohup java -jar ${{ secrets.JAR_NAME }} > nohup.out 2>&1 &
+
+          echo "✅ App iniciado!"
+          EOF
+
+      - name: 📤 Copiar arquivos (JAR + Script) via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.LIGHTSAIL_HOST }}
           username: ${{ secrets.LIGHTSAIL_USER }}
           key: ${{ secrets.LIGHTSAIL_KEY }}
-          source: target/${{ secrets.JAR_NAME }}
+          source: |
+            target/${{ secrets.JAR_NAME }}
+            remote-restart.sh
           target: ${{ secrets.REMOTE_APP_PATH }}
 
-      - name: 🚀 Start/Restart app via SSH (com logs)
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.LIGHTSAIL_HOST }}
-          username: ${{ secrets.LIGHTSAIL_USER }}
-          key: ${{ secrets.LIGHTSAIL_KEY }}
-          script: |
-            echo "🚨 Verificando se existe processo rodando com o JAR ${{ secrets.JAR_NAME }}..."
-            if pgrep -f ${{ secrets.JAR_NAME }} > /dev/null; then
-              echo "🔪 Processo encontrado. Matando com pkill (em subshell protegido)..."
-              ( pkill -f ${{ secrets.JAR_NAME }} ) || echo "⚠️ pkill retornou código diferente de zero, mas continuamos."
-              echo "✅ Processo encerrado com sucesso (ou já não existia mais)."
-            else
-              echo "ℹ️ Nenhum processo Java rodando com nome ${{ secrets.JAR_NAME }}."
-            fi
-
-            echo "⌛ Aguardando 5 segundos..."
-            sleep 5
-
-            echo "📂 Acessando diretório da aplicação: ${{ secrets.REMOTE_APP_PATH }}/target"
-            cd ${{ secrets.REMOTE_APP_PATH }}/target
-
-            echo "📍 Diretório atual:"
-            pwd
-
-            echo "📄 Listando arquivos do diretório:"
-            ls -l
-
-            echo "🚀 Iniciando a aplicação com nohup em background..."
-            nohup java -jar ${{ secrets.JAR_NAME }} > nohup.out 2>&1 &
-
-            echo "✅ Aplicação iniciada com sucesso!"
+      - name: 🚀 Executar script de restart remoto via SSH
+        run: |
+          ssh -i ~/.ssh/id_rsa \
+              -o StrictHostKeyChecking=no \
+              ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} \
+              "chmod +x ${{ secrets.REMOTE_APP_PATH }}/remote-restart.sh && ${{ secrets.REMOTE_APP_PATH }}/remote-restart.sh"
+        env:
+          # Copia a chave privada do secret para ser usada pelo SSH
+          SSH_PRIVATE_KEY: ${{ secrets.LIGHTSAIL_KEY }}
+        shell: bash
