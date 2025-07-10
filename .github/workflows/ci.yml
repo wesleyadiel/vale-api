@@ -9,9 +9,8 @@ on:
   push:
     branches-ignore:
       - main
-  pull_request:
-    branches-ignore:
-      - main
+      - develop
+      - homolog
 
 jobs:
   build-and-test:
@@ -74,7 +73,7 @@ jobs:
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          head: develop  # Corrigido aqui
+          head: develop
           base: main
           title: "PR automático | develop -> main"
           body: |
@@ -98,7 +97,7 @@ jobs:
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          head: ${{ github.ref_name }}  # Corrigido aqui
+          head: ${{ github.ref_name }}
           base: develop
           title: "PR automático | `${{ github.ref_name }}` -> develop"
           body: |
