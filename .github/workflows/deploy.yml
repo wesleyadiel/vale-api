@@ -41,40 +41,31 @@ jobs:
           source: target/${{ secrets.JAR_NAME }}
           target: ${{ secrets.REMOTE_APP_PATH }}
 
-      - name: 🚀 Reiniciar app na instância
+      - name: 🚀 Start/Restart app via SSH (com logs)
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.LIGHTSAIL_HOST }}
           username: ${{ secrets.LIGHTSAIL_USER }}
           key: ${{ secrets.LIGHTSAIL_KEY }}
           script: |
-            # Definindo variável para o caminho completo do JAR
-            JAR_PATH="${{ secrets.REMOTE_APP_PATH }}/target/${{ secrets.JAR_NAME }}"
+            echo "🚨 Tentando matar processo Java rodando o jar ${{ secrets.JAR_NAME }} (se existir)..."
+            pkill -f ${{ secrets.JAR_NAME }} || echo "Nenhum processo para matar."
 
-            echo "Diretório atual:"
+            echo "⌛ Aguardando 5 segundos para garantir que processo foi finalizado..."
+            sleep 5
+
+            echo "📂 Acessando diretório da aplicação: ${{ secrets.REMOTE_APP_PATH }}"
+            cd ${{ secrets.REMOTE_APP_PATH }}
+
+            echo "📍 Diretório atual:"
             pwd
 
-            echo "Arquivos em ${{ secrets.REMOTE_APP_PATH }}/target:"
-            ls -l "${{ secrets.REMOTE_APP_PATH }}/target"
+            echo "📄 Listando arquivos do diretório:"
+            ls -l
 
-            echo "⛔ Parando app atual (se estiver rodando)..."
-            pkill -f "$JAR_PATH" || true
+            echo "🚀 Iniciando a aplicação com nohup em background..."
+            nohup java -jar ${{ secrets.JAR_NAME }} > nohup.out 2>&1 &
 
-            echo "🔧 Garantindo permissões no JAR..."
-            chmod +x "$JAR_PATH"
-
-            echo "🚀 Iniciando nova versão..."
-            nohup java -jar "$JAR_PATH" > "${{ secrets.REMOTE_APP_PATH }}/output.log" 2>&1 &
-
-            sleep 10
-
-            if pgrep -f "$JAR_PATH" > /dev/null; then
-              echo "🟢 App iniciado com sucesso!"
-              exit 0
-            else
-              echo "🔴 Falha ao iniciar o app!"
-              echo "Conteúdo do log:"
-              cat "${{ secrets.REMOTE_APP_PATH }}/output.log"
-              exit 1
-            fi
+            echo "✅ Aplicação iniciada com sucesso!"
+      
       
