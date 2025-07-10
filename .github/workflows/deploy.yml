@@ -38,7 +38,7 @@ jobs:
           host: ${{ secrets.LIGHTSAIL_HOST }}
           username: ${{ secrets.LIGHTSAIL_USER }}
           key: ${{ secrets.LIGHTSAIL_KEY }}
-          source: target/${{ secrets.JAR_NAME }}
+          source: ${{ secrets.JAR_NAME }}
           target: ${{ secrets.REMOTE_APP_PATH }}
 
       - name: 🚀 Reiniciar app na instância
@@ -51,6 +51,17 @@ jobs:
             cd ${{ secrets.REMOTE_APP_PATH }}
             echo "⛔ Parando app atual (se estiver rodando)..."
             pkill -f ${{ secrets.JAR_NAME }} || true
+
             echo "🚀 Iniciando nova versão..."
             nohup java -jar ${{ secrets.JAR_NAME }} > output.log 2>&1 &
-            echo "✅ Deploy completo!"
+
+            sleep 5
+
+            if pgrep -f ${{ secrets.JAR_NAME }} > /dev/null; then
+              echo "🟢 App iniciado com sucesso!"
+              exit 0
+            else
+              echo "🔴 Falha ao iniciar o app!"
+              exit 1
+            fi
+      
