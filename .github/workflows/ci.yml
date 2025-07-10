@@ -90,15 +90,16 @@ jobs:
       github.ref != 'refs/heads/homolog'
 
     steps:
-      - name: ⏬ Checkout branch
-        uses: actions/checkout@v3
-
-      - name: 🔁 Create PR to develop
-        uses: peter-evans/create-pull-request@v5
+      - name: 🔁 Criar Pull Request para develop
+        uses: octokit/request-action@v2.x
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          head: ${{ github.ref_name }}
-          base: develop
-          title: "PR automático | `${{ github.ref_name }}` -> develop"
-          body: |
-            Este PR foi gerado automaticamente após o push na branch `${{ github.ref_name }}`.
+          route: POST /repos/${{ github.repository }}/pulls
+          parameters: |
+            {
+              "title": "PR automático | ${{ github.ref_name }} -> develop",
+              "head": "${{ github.ref_name }}",
+              "base": "develop",
+              "body": "Este PR foi gerado automaticamente após o push na branch `${{ github.ref_name }}`."
+            }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
