@@ -9,8 +9,6 @@ on:
   push:
     branches-ignore:
       - main
-      - develop
-      - homolog
 
 jobs:
   build-and-test:
