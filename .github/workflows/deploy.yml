@@ -48,7 +48,7 @@ jobs:
           username: ${{ secrets.LIGHTSAIL_USER }}
           key: ${{ secrets.LIGHTSAIL_KEY }}
           script: |
-            cd ${{ secrets.REMOTE_APP_PATH }}
+            cd ${{ secrets.REMOTE_APP_PATH }}/target
             
             echo "Arquivos na pasta:"
             ls -l 
