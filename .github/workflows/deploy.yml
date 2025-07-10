@@ -49,6 +49,10 @@ jobs:
           key: ${{ secrets.LIGHTSAIL_KEY }}
           script: |
             cd ${{ secrets.REMOTE_APP_PATH }}
+            
+            echo "Arquivos na pasta:"
+            ls -l 
+            
             echo "⛔ Parando app atual (se estiver rodando)..."
             pkill -f "${{ secrets.JAR_NAME }}" || true
 
