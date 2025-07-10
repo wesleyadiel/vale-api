@@ -7,12 +7,8 @@ permissions:
 
 on:
   push:
-    branches:
-      - '*'
-      - '!main'
-  pull_request:
-    branches:
-      - develop
+    branches-ignore:
+      - main
 
 jobs:
   build-and-test:
@@ -51,7 +47,7 @@ jobs:
           java-version: '21'
 
       - name: 🚀 Initialize CodeQL
-        uses: github/codeql-action/init@v2
+        uses: github/codeql-action/init@v3
         with:
           languages: java
 
@@ -59,7 +55,49 @@ jobs:
         run: mvn clean compile -DskipTests
 
       - name: 🔍 Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@v3
+
+  create-pr-to-develop:
+    name: 🔁 Create PR to develop
+    runs-on: ubuntu-latest
+    needs: codeql-analysis
+    if: |
+      startsWith(github.ref, 'refs/heads/') &&
+      github.ref != 'refs/heads/develop' &&
+      github.ref != 'refs/heads/main' &&
+      github.ref != 'refs/heads/homolog'
+
+    steps:
+      - name: 🔁 Criar Pull Request para develop
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const branch = '${{ github.ref_name }}';
+            const prTitle = `PR automático | ${branch} -> develop`;
+            const prBody = `Este PR foi gerado automaticamente após o push na branch \`${branch}\`.`;
+
+            const { data: existingPRs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `${context.repo.owner}:${branch}`,
+              base: 'develop',
+              state: 'open'
+            });
+
+            if (existingPRs.length === 0) {
+              await github.rest.pulls.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: prTitle,
+                head: branch,
+                base: 'develop',
+                body: prBody
+              });
+              console.log(`✅ PR criado: ${branch} -> develop`);
+            } else {
+              console.log('⚠️ PR já existente. Nenhuma ação tomada.');
+            }
 
   create-pr-to-main:
     name: 🔁 Create PR to Main
@@ -68,15 +106,32 @@ jobs:
     if: github.ref == 'refs/heads/develop'
 
     steps:
-      - name: ⏬ Checkout code
-        uses: actions/checkout@v3
-
-      - name: 🔁 Create PR to main
-        uses: peter-evans/create-pull-request@v5
+      - name: 🔁 Criar Pull Request para main
+        uses: actions/github-script@v7
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: dev
-          base: main
-          title: "🔁 PR automático da develop para main"
-          body: |
-            Este PR foi gerado automaticamente após a análise bem-sucedida da branch `develop`.
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prTitle = `PR automático | develop -> main`;
+            const prBody = `Este PR foi gerado automaticamente após a análise da branch \`develop\`.`;
+
+            const { data: existingPRs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `${context.repo.owner}:develop`,
+              base: 'main',
+              state: 'open'
+            });
+
+            if (existingPRs.length === 0) {
+              await github.rest.pulls.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: prTitle,
+                head: 'develop',
+                base: 'main',
+                body: prBody
+              });
+              console.log('✅ PR criado: develop -> main');
+            } else {
+              console.log('⚠️ PR já existente. Nenhuma ação tomada.');
+            }
