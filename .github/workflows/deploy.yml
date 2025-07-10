@@ -23,6 +23,12 @@ jobs:
       - name: 🛠️ Build com Maven
         run: mvn clean package -DskipTests
 
+      - name: 🔐 Preparar chave SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.LIGHTSAIL_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
       - name: 🛠️ Criar script de start remoto
         run: |
           cat << 'EOF' > remote-restart.sh
@@ -55,15 +61,11 @@ jobs:
           EOF
 
       - name: 📤 Copiar arquivos (JAR + Script) via SCP
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.LIGHTSAIL_HOST }}
-          username: ${{ secrets.LIGHTSAIL_USER }}
-          key: ${{ secrets.LIGHTSAIL_KEY }}
-          source: |
-            target/${{ secrets.JAR_NAME }}
-            remote-restart.sh
-          target: ${{ secrets.REMOTE_APP_PATH }}
+        run: |
+          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
+            target/${{ secrets.JAR_NAME }} \
+            remote-restart.sh \
+            ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:${{ secrets.REMOTE_APP_PATH }}
 
       - name: 🚀 Executar script de restart remoto via SSH
         run: |
@@ -71,7 +73,3 @@ jobs:
               -o StrictHostKeyChecking=no \
               ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} \
               "chmod +x ${{ secrets.REMOTE_APP_PATH }}/remote-restart.sh && ${{ secrets.REMOTE_APP_PATH }}/remote-restart.sh"
-        env:
-          # Copia a chave privada do secret para ser usada pelo SSH
-          SSH_PRIVATE_KEY: ${{ secrets.LIGHTSAIL_KEY }}
-        shell: bash
